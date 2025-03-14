@@ -1,0 +1,274 @@
+必要的参考资料:
+
+全局描述符表:https://blog.csdn.net/qq_31262473/article/details/113752708
+
+Linux-0.11目录结构:
+│  Makefile
+│
+├─boot
+│      bootsect.s
+│      head.s
+│      setup.s
+│
+├─fs
+│      bitmap.c
+│      block_dev.c
+│      buffer.c
+│      char_dev.c
+│      exec.c
+│      fcntl.c
+│      file_dev.c
+│      file_table.c
+│      inode.c
+│      ioctl.c
+│      Makefile
+│      namei.c
+│      open.c
+│      pipe.c
+│      read_write.c
+│      stat.c
+│      super.c
+│      truncate.c
+│
+├─include
+│  │  a.out.h
+│  │  const.h
+│  │  ctype.h
+│  │  errno.h
+│  │  fcntl.h
+│  │  signal.h
+│  │  stdarg.h
+│  │  stddef.h
+│  │  string.h
+│  │  termios.h
+│  │  time.h
+│  │  unistd.h
+│  │  utime.h
+│  │
+│  ├─asm
+│  │      io.h
+│  │      memory.h
+│  │      segment.h
+│  │      system.h
+│  │
+│  ├─linux
+│  │      config.h
+│  │      fdreg.h
+│  │      fs.h
+│  │      hdreg.h
+│  │      head.h
+│  │      kernel.h
+│  │      mm.h
+│  │      sched.h
+│  │      sys.h
+│  │      tty.h
+│  │
+│  └─sys
+│          stat.h
+│          times.h
+│          types.h
+│          utsname.h
+│          wait.h
+│
+├─init
+│      main.c
+│
+├─kernel
+│  │  asm.s
+│  │  exit.c
+│  │  fork.c
+│  │  Makefile
+│  │  mktime.c
+│  │  panic.c
+│  │  printk.c
+│  │  sched.c
+│  │  signal.c
+│  │  sys.c
+│  │  system_call.s
+│  │  traps.c
+│  │  vsprintf.c
+│  │
+│  ├─blk_drv
+│  │      blk.h
+│  │      floppy.c
+│  │      hd.c
+│  │      ll_rw_blk.c
+│  │      Makefile
+│  │      ramdisk.c
+│  │
+│  ├─chr_drv
+│  │      console.c
+│  │      keyboard.S
+│  │      Makefile
+│  │      rs_io.s
+│  │      serial.c
+│  │      tty_io.c
+│  │      tty_ioctl.c
+│  │
+│  └─math
+│          Makefile
+│          math_emulate.c
+│
+├─lib
+│      close.c
+│      ctype.c
+│      dup.c
+│      errno.c
+│      execve.c
+│      Makefile
+│      malloc.c
+│      open.c
+│      setsid.c
+│      string.c
+│      wait.c
+│      write.c
+│      _exit.c
+│
+├─mm
+│      Makefile
+│      memory.c
+│      page.s
+│
+└─tools
+        build.c
+
+李述铜的目录结构:
+├─applib
+│      CMakeLists.txt
+│      crt0.S
+│      cstart.c
+│      lib_syscall.c
+│      lib_syscall.h
+│
+├─boot
+│      boot.c
+│      boot.h
+│      CMakeLists.txt
+│      start.S
+│
+├─comm
+│      boot_info.h
+│      cpu_instr.h
+│      elf.h
+│      types.h
+│
+├─init
+│      CMakeLists.txt
+│      link.lds
+│      main.c
+│      main.h
+│
+├─kernel
+│  │  CMakeLists.txt
+│  │  kernel.lds
+│  │
+│  ├─core
+│  │      memory.c
+│  │      syscall.c
+│  │      task.c
+│  │
+│  ├─cpu
+│  │      cpu.c
+│  │      irq.c
+│  │
+│  ├─dev
+│  │      console.c
+│  │      dev.c
+│  │      disk.c
+│  │      kbd.c
+│  │      time.c
+│  │      tty.c
+│  │
+│  ├─fs
+│  │  │  file.c
+│  │  │  fs.c
+│  │  │
+│  │  ├─devfs
+│  │  │      devfs.c
+│  │  │
+│  │  └─fatfs
+│  │          fatfs.c
+│  │
+│  ├─include
+│  │  │  os_cfg.h
+│  │  │
+│  │  ├─core
+│  │  │      memory.h
+│  │  │      syscall.h
+│  │  │      task.h
+│  │  │
+│  │  ├─cpu
+│  │  │      cpu.h
+│  │  │      irq.h
+│  │  │      mmu.h
+│  │  │
+│  │  ├─dev
+│  │  │      console.h
+│  │  │      dev.h
+│  │  │      disk.h
+│  │  │      kbd.h
+│  │  │      time.h
+│  │  │      tty.h
+│  │  │
+│  │  ├─fs
+│  │  │  │  file.h
+│  │  │  │  fs.h
+│  │  │  │
+│  │  │  ├─devfs
+│  │  │  │      devfs.h
+│  │  │  │
+│  │  │  └─fatfs
+│  │  │          fatfs.h
+│  │  │
+│  │  ├─ipc
+│  │  │      mutex.h
+│  │  │      sem.h
+│  │  │
+│  │  └─tools
+│  │          bitmap.h
+│  │          klib.h
+│  │          list.h
+│  │          log.h
+│  │
+│  ├─init
+│  │      first_task.c
+│  │      first_task_entry.S
+│  │      init.c
+│  │      init.h
+│  │      lib_syscall.c
+│  │      start.S
+│  │
+│  ├─ipc
+│  │      mutex.c
+│  │      sem.c
+│  │
+│  └─tools
+│          bitmap.c
+│          klib.c
+│          list.c
+│          log.c
+│
+├─loader
+│      CMakeLists.txt
+│      loader.h
+│      loader_16.c
+│      loader_32.c
+│      start.S
+│
+├─loop
+│      CMakeLists.txt
+│      link.lds
+│      main.c
+│      main.h
+│
+├─shell
+│      CMakeLists.txt
+│      link.lds
+│      main.c
+│      main.h
+│
+└─snake
+        CMakeLists.txt
+        link.lds
+        main.c
+        main.h

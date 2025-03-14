@@ -1,0 +1,13 @@
+     1                                  [bits 32]
+     2                                  extern on_timer
+     3                                  global timer_interrupt_handler
+     4                                  timer_interrupt_handler:
+     5                                  ; 又一个底层bug:
+     6                                  ; 中断处理程序一定要保存易变寄存器,不然会出现极其难以排查的错误
+     7                                  ; 现在我对于计组教材上的中断处理过程有了更深入的理解
+     8 00000000 60                      pushad
+     9 00000001 1E                      push ds
+    10 00000002 E8(00000000)            call on_timer
+    11 00000007 1F                      pop ds
+    12 00000008 61                      popad
+    13 00000009 CF                      iret

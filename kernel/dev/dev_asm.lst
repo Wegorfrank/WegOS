@@ -1,0 +1,11 @@
+     1                                  [bits 32]
+     2                                  global keyboard_interrupt_handler,print_debug_info
+     3                                  extern on_keyboard
+     4                                  keyboard_interrupt_handler:
+     5 00000000 60                      pushad
+     6 00000001 1E                      push ds
+     7 00000002 E8(00000000)            call on_keyboard
+     8 00000007 1F                      pop ds
+     9 00000008 61                      popad
+    10 00000009 CF                      iret
+    11                                  print_debug_info:

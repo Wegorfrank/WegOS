@@ -1,0 +1,17 @@
+     1                                  [bits 32]
+     2                                  global page_fault_handler
+     3                                  extern on_page_fault
+     4                                  page_fault_handler:
+     5 00000000 60                      pushad
+     6 00000001 1E                      push ds
+     7                                  ; 精准堆栈获取错误码
+     8 00000002 8B442424                mov eax, [esp+0x24]
+     9 00000006 0F20D3                  mov ebx, cr2
+    10 00000009 50                      push eax ; 从右往左入栈
+    11 0000000A 53                      push ebx
+    12 0000000B E8(00000000)            call on_page_fault
+    13 00000010 81C408000000            add esp, 8 ; gcc的C调用协议要求由调用者平衡堆栈
+    14 00000016 1F                      pop ds
+    15 00000017 61                      popad
+    16 00000018 81C404000000            add esp, 4
+    17 0000001E CF                      iret

@@ -1,0 +1,136 @@
+     1                                  ; 汇编语言源程序都以.s结尾(这是约定)
+     2                                  
+     3                                  ; 以下程序会被加载到内存0x7C00位置
+     4                                  org 0x7C00
+     5                                  
+     6                                  boot:;boot标号将等于0x7C00
+     7                                  ; 必要的寄存器对齐工作
+     8 00000000 31C0                    xor ax, ax
+     9 00000002 8ED8                    mov ds, ax
+    10                                  ; 栈设置在0xA0000位置,这是为了在保证不破坏中断向量表、显存、ROM之类的数据结构前提下尽可能远离代码段
+    11 00000004 B80090                  mov ax, 0x9000
+    12 00000007 8ED0                    mov ss, ax
+    13                                  ; 把ax再清零一次吧，为了更好的可读性
+    14 00000009 31C0                    xor ax, ax
+    15 0000000B B8FEFF                  mov ax, 0xFFFE
+    16 0000000E 89C4                    mov sp, ax
+    17                                  ; ↑现在栈为空!
+    18                                  ; 主引导扇区应该做什么呢?这不确定.但是可以肯定的是,它有义务把剩余部分从磁盘搬到内存.
+    19                                  ; 搬到什么位置?0x8000位置肯定是最合适的.
+    20                                  
+    21                                  ; 这个操作系统是我做出来的!我有权向屏幕输出信息!
+    22                                  ; 屏幕一行80(0x50)个字符,共25(0x19)行
+    23                                  ; 先清屏
+    24 00000010 E87500                  call cls
+    25                                  
+    26 00000013 31C0                    xor ax, ax
+    27 00000015 8ED8                    mov ds, ax
+    28                                  
+    29 00000017 BE[9C00]                mov si, copyright_Welcome_to_WegOS
+    30 0000001A 31FF                    xor di, di
+    31 0000001C BB000B                  mov bx, 0x0B00
+    32 0000001F E85500                  call show
+    33                                  
+    34 00000022 BE[AE00]                mov si, copyright_The_OS_is_developed_by
+    35 00000025 BFA000                  mov di, 0x50*2 ;换行显示(乘二是因为要考虑颜色字节)
+    36 00000028 BB000B                  mov bx, 0x0B00
+    37 0000002B E84900                  call show
+    38                                  
+    39 0000002E E80500                  call read_loader
+    40 00000031 EA00800000              jmp 0:0x8000 ;我写代码就和做数学题一样不细心,我一开始写成了0x8000:0
+    41                                  
+    42                                  read_loader:;写死,读取到0x8000位置
+    43 00000036 B80008                  mov ax, 0x800
+    44 00000039 8ED8                    mov ds, ax
+    45                                  ; 端口号0x1F2是要读取的扇区数
+    46                                  ; 端口号是也必须是16位
+    47 0000003B BAF201                  mov dx, 0x1F2
+    48                                  ; 暂且认为32个扇区足够存放loader的代码了(写死)
+    49 0000003E B020                    mov al, 0x20
+    50 00000040 EE                      out dx, al
+    51                                  ; LBA方式下扇区号占28位
+    52                                  ; 端口号0x1F3是0-7位
+    53 00000041 BAF301                  mov dx, 0x1F3
+    54 00000044 B001                    mov al, 0x01
+    55 00000046 EE                      out dx, al
+    56                                  ; 端口号0x1F4是8-15位
+    57 00000047 30C0                    xor al, al
+    58 00000049 BAF401                  mov dx, 0x1F4
+    59 0000004C EE                      out dx, al
+    60                                  ; 端口号0x1F5是16-23位
+    61 0000004D BAF501                  mov dx, 0x1F5
+    62 00000050 EE                      out dx, al
+    63                                  ; 端口号0x1F6低4位是24-27位
+    64                                  ; 端口号0x1F6的高4位很不好处理,直接记住填1110
+    65 00000051 B0E0                    mov al, 0xE0
+    66 00000053 BAF601                  mov dx, 0x1F6
+    67 00000056 EE                      out dx, al
+    68                                  ; 端口号0x1F7是控制寄存器,用于发送读写命令
+    69                                  ; 发送读命令应该写入0x20
+    70 00000057 BAF701                  mov dx, 0x1F7
+    71 0000005A B020                    mov al, 0x20
+    72 0000005C EE                      out dx, al
+    73                                  ; 循环等待直到读取完成:0x1F7也是状态寄存器
+    74                                  waits:
+    75 0000005D EC                      in al, dx
+    76 0000005E 2488                    and al, 0x88
+    77 00000060 3C08                    cmp al, 0x08
+    78 00000062 75F9                    jnz waits
+    79                                  ; 端口号0x1F0是数据寄存器
+    80 00000064 B90020                  mov cx, 0x2000 ;32个扇区(写死)
+    81 00000067 BB0000                  mov bx, 0
+    82 0000006A BAF001                  mov dx, 0x1F0
+    83                                  continue_to_read:
+    84 0000006D ED                      in ax, dx
+    85 0000006E 8907                    mov [bx], ax
+    86 00000070 81C30200                add bx, 2
+    87 00000074 E2F7                    loop continue_to_read
+    88 00000076 C3                      ret
+    89                                  
+    90                                  ; 临时制作一个字符串显示例程(所有的函数都写到最后!以免误执行)
+    91                                  show:
+    92                                  ; 传参:
+    93                                  ; ds:si->字符串开始地址
+    94                                  ; 0xB800:di->目标位置
+    95                                  ; bh->显示颜色
+    96                                  ; bl->字符串结束标志
+    97 00000077 B800B8                  mov ax, 0xB800 ;本例程会破坏寄存器ax!
+    98 0000007A 8EC0                    mov es, ax
+    99                                  show_loop:
+   100 0000007C 381C                    cmp byte [si], bl
+   101 0000007E 7407                    je show_end
+   102                                  show_single_char:
+   103 00000080 A4                      movsb
+   104 00000081 26883D                  mov [es:di], bh
+   105 00000084 47                      inc di
+   106 00000085 EBF5                    jmp show_loop
+   107                                  show_end:
+   108 00000087 C3                      ret
+   109                                  
+   110                                  cls:
+   111 00000088 B800B8                  mov ax, 0xB800
+   112 0000008B 8ED8                    mov ds, ax
+   113 0000008D B9D007                  mov cx, 0x50*0x19
+   114 00000090 31FF                    xor di, di
+   115                                  put_blank:
+   116 00000092 C60520                  mov byte [di], ' '
+   117 00000095 81C70200                add di, 0x2
+   118 00000099 E2F7                    loop put_blank
+   119 0000009B C3                      ret
+   120                                  
+   121                                  copyright_Welcome_to_WegOS:
+   122 0000009C 57656C636F6D652074-     db "Welcome to WegOS.", 0 ;长度17=0x11
+   123 000000A5 6F205765674F532E00 
+   124                                  copyright_The_OS_is_developed_by:
+   125 000000AE 546865204F53206973-     db "The OS is developed independently by Wenge Wang in China.", 0 ;长度57=0x39
+   126 000000B7 20646576656C6F7065-
+   127 000000C0 6420696E646570656E-
+   128 000000C9 64656E746C79206279-
+   129 000000D2 2057656E6765205761-
+   130 000000DB 6E6720696E20436869-
+   131 000000E4 6E612E00           
+   132                                  
+   133 000000E8 00<rept>                times (510-($-$$)) db 0
+   134                                  ; Magic number
+   135                                  boot_end:;此标号应该用不到,单纯是可读性的要求
+   136 000001FE 55AA                    db 0x55, 0xAA
